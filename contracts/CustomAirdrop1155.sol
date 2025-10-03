@@ -64,7 +64,7 @@ contract CustomAirdrop1155 is Ownable, ReentrancyGuard, Pausable {
         _airdropType = airdropType;
     }
 
-    function claim(address user, uint256 amount, bytes32[] calldata proof) public nonReentrant whenNotPaused onlyOwner {
+    function claim(address user) public nonReentrant whenNotPaused onlyOwner {
         require(isAllowed(user), "Address not allowed to claim this airdrop");
         require(!hasExpired(), "Airdrop already expired.");
         require(!hasClaimed(user), "Address already claimed this airdrop.");

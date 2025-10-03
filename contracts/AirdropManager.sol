@@ -17,8 +17,8 @@ struct AirdropInfo {
     AirdropType airdropType;
 }
 
-interface IAirdrop1155 {
-    function claim(address user, uint256 amount_, bytes32[] calldata proof_) external;
+interface ICustomAirdrop {
+    function claim(address user) external;
     function hasClaimed(address _address) external view returns(bool);
     function hasExpired() external view returns(bool);
     function allowAddress(address _address) external;
@@ -28,6 +28,17 @@ interface IAirdrop1155 {
     function isAllowed(address _address) external view returns(bool);
     function getExpirationDate() external view returns(uint256);
     function getClaimAmount() external view returns(uint256);
+    function getTotalAirdropAmount() external view returns(uint256);
+    function getAirdropAmountLeft() external view returns(uint256);
+    function getBalance() external view returns(uint256);
+    function getAirdropInfo() external view returns(AirdropInfo memory info);
+}
+
+interface IMerkleAirdrop {
+    function claim(address user, uint256 amount, bytes32[] calldata proof) external;
+    function hasClaimed(address _address) external view returns(bool);
+    function hasExpired() external view returns(bool);
+    function getExpirationDate() external view returns(uint256);
     function getTotalAirdropAmount() external view returns(uint256);
     function getAirdropAmountLeft() external view returns(uint256);
     function getBalance() external view returns(uint256);
@@ -44,52 +55,57 @@ contract AirdropManager is Administrable {
     event AirdropRemoved(address airdropAddress);
 
     function claim(address airdropAddress, address user, uint256 amount, bytes32[] calldata proof) public {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        IMerkleAirdrop airdrop = IMerkleAirdrop(airdropAddress);
         airdrop.claim(user, amount, proof);
     }
 
+    function claimCustom(address airdropAddress, address user) public {
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
+        airdrop.claim(user);
+    }
+
     function hasClaimed(address airdropAddress, address user) public view returns(bool) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.hasClaimed(user);
     }
 
     function hasExpired(address airdropAddress) public view returns(bool) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.hasExpired();
     }
 
     function isAllowed(address airdropAddress, address user) public view returns(bool) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.isAllowed(user);
     }
 
     function getExpirationDate(address airdropAddress) public view returns(uint256) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.getExpirationDate();
     }
 
     function getClaimAmount(address airdropAddress) public view returns(uint256) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.getClaimAmount();
     }
 
     function getAirdropInfo(address airdropAddress) public view returns(AirdropInfo memory) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.getAirdropInfo();
     }
 
     function getTotalAirdropAmount(address airdropAddress) public view returns(uint256) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.getTotalAirdropAmount();
     }
 
     function getAirdropAmountLeft(address airdropAddress) public view returns(uint256) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.getAirdropAmountLeft();
     }
 
     function getBalance(address airdropAddress) public view returns(uint256) {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         return airdrop.getBalance();
     }
 
@@ -109,7 +125,7 @@ contract AirdropManager is Administrable {
     }
 
     function setRoot(address airdropAddress, bytes32 _root) public onlyAdmins {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        IMerkleAirdrop airdrop = IMerkleAirdrop(airdropAddress);
         airdrop.setRoot(_root);
     }
 
@@ -127,22 +143,22 @@ contract AirdropManager is Administrable {
     }
 
     function allowAddress(address airdropAddress, address user) public onlyAdmins {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.allowAddress(user);
     }
 
     function allowAddresses(address airdropAddress, address[] memory users) public onlyAdmins {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.allowAddresses(users);
     }
 
     function disallowAddress(address airdropAddress, address user) public onlyAdmins {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.disallowAddress(user);
     }
 
     function disallowAddresses(address airdropAddress, address[] memory users) public onlyAdmins {
-        IAirdrop1155 airdrop = IAirdrop1155(airdropAddress);
+        ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.disallowAddresses(users);
     }
 }
