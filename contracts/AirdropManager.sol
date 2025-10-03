@@ -51,8 +51,10 @@ contract AirdropManager is Administrable {
 
     constructor (address[] memory initialAdmins) Administrable(initialAdmins) {}
 
-    event AirdropAdded(address airdropAddress);
-    event AirdropRemoved(address airdropAddress);
+    event AirdropAdded(address indexed airdropAddress);
+    event AirdropRemoved(address indexed airdropAddress);
+    event AddressAllowedByManager(address indexed airdropAddress, address indexed user, address indexed allowedBy);
+    event AddressDisallowedByManager(address indexed airdropAddress, address indexed user, address indexed disallowedBy);
 
     function claim(address airdropAddress, address user, uint256 amount, bytes32[] calldata proof) public {
         IMerkleAirdrop airdrop = IMerkleAirdrop(airdropAddress);
@@ -145,20 +147,28 @@ contract AirdropManager is Administrable {
     function allowAddress(address airdropAddress, address user) public onlyAdmins {
         ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.allowAddress(user);
+        emit AddressAllowedByManager(airdropAddress, user, msg.sender);
     }
 
     function allowAddresses(address airdropAddress, address[] memory users) public onlyAdmins {
         ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.allowAddresses(users);
+        for (uint i = 0; i < users.length; i++) {
+            emit AddressAllowedByManager(airdropAddress, users[i], msg.sender);
+        }
     }
 
     function disallowAddress(address airdropAddress, address user) public onlyAdmins {
         ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.disallowAddress(user);
+        emit AddressDisallowedByManager(airdropAddress, user, msg.sender);
     }
 
     function disallowAddresses(address airdropAddress, address[] memory users) public onlyAdmins {
         ICustomAirdrop airdrop = ICustomAirdrop(airdropAddress);
         airdrop.disallowAddresses(users);
+        for (uint i = 0; i < users.length; i++) {
+            emit AddressDisallowedByManager(airdropAddress, users[i], msg.sender);
+        }
     }
 }

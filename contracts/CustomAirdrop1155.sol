@@ -26,9 +26,9 @@ struct AirdropInfo {
 }
 
 contract CustomAirdrop1155 is Ownable, ReentrancyGuard, Pausable {
-    event Claim(address recipient, uint256 amount);
-    event AddressAllowed(address allowedAddress);
-    event AddressDisallowed(address disallowedAddress);
+    event Claim(address indexed recipient, uint256 amount);
+    event AddressAllowed(address indexed allowedAddress);
+    event AddressDisallowed(address indexed disallowedAddress);
     event AirdropPaused(address indexed pausedBy);
     event AirdropUnpaused(address indexed unpausedBy);
 

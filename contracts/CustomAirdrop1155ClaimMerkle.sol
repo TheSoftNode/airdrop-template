@@ -27,7 +27,7 @@ struct AirdropInfo {
 }
 
 contract CustomAirdrop1155Merkle is Ownable, ReentrancyGuard, Pausable {
-    event Claim(address recipient, uint256 amount);
+    event Claim(address indexed recipient, uint256 amount);
     event AirdropPaused(address indexed pausedBy);
     event AirdropUnpaused(address indexed unpausedBy);
     event MerkleRootUpdated(bytes32 indexed newRoot);
