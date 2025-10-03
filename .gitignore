@@ -5,3 +5,4 @@ artifacts
 # TypeChain files
 /typechain
 /typechain-types
+resources/

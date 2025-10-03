@@ -2,6 +2,8 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 interface IERC1155 {
     function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) external;
@@ -23,10 +25,12 @@ struct AirdropInfo {
     AirdropType airdropType;
 }
 
-contract CustomAirdrop1155 is Ownable {
+contract CustomAirdrop1155 is Ownable, ReentrancyGuard, Pausable {
     event Claim(address recipient, uint256 amount);
     event AddressAllowed(address allowedAddress);
     event AddressDisallowed(address disallowedAddress);
+    event AirdropPaused(address indexed pausedBy);
+    event AirdropUnpaused(address indexed unpausedBy);
 
     IERC1155 _tokenContract;
     uint256 _totalAirdropAmount;
@@ -60,7 +64,7 @@ contract CustomAirdrop1155 is Ownable {
         _airdropType = airdropType;
     }
 
-    function claim(address user, uint256 amount, bytes32[] calldata proof) public onlyOwner {
+    function claim(address user, uint256 amount, bytes32[] calldata proof) public nonReentrant whenNotPaused onlyOwner {
         require(isAllowed(user), "Address not allowed to claim this airdrop");
         require(!hasExpired(), "Airdrop already expired.");
         require(!hasClaimed(user), "Address already claimed this airdrop.");
@@ -72,6 +76,16 @@ contract CustomAirdrop1155 is Ownable {
         _addressesThatAlreadyClaimed[user] = true;
 
         emit Claim(user, _claimAmount);
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+        emit AirdropPaused(msg.sender);
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+        emit AirdropUnpaused(msg.sender);
     }
 
     function getAirdropInfo() public view returns(AirdropInfo memory) {
