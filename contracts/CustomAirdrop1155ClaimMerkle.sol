@@ -2,6 +2,8 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 interface IERC1155 {
@@ -24,8 +26,11 @@ struct AirdropInfo {
     AirdropType airdropType;
 }
 
-contract CustomAirdrop1155Merkle is Ownable {
+contract CustomAirdrop1155Merkle is Ownable, ReentrancyGuard, Pausable {
     event Claim(address recipient, uint256 amount);
+    event AirdropPaused(address indexed pausedBy);
+    event AirdropUnpaused(address indexed unpausedBy);
+    event MerkleRootUpdated(bytes32 indexed newRoot);
 
     IERC1155 _tokenContract;
     uint256 _totalAirdropAmount;
@@ -64,10 +69,21 @@ contract CustomAirdrop1155Merkle is Ownable {
 
     function setRoot(bytes32 _root) public onlyOwner {
         root = _root;
+        emit MerkleRootUpdated(_root);
     }
 
-    function claim(address user, uint256 amount, bytes32[] calldata proof) external onlyOwner{
+    function claim(address user, uint256 amount, bytes32[] calldata proof) external nonReentrant whenNotPaused onlyOwner{
         _claim(user, amount, proof);
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+        emit AirdropPaused(msg.sender);
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+        emit AirdropUnpaused(msg.sender);
     }
 
     function _claim(address origin_, uint256 amount_, bytes32[] calldata proof_) internal {
